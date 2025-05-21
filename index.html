@@ -5,7 +5,7 @@
   <title data-i18n="pageTitle">影片轉 GIF 轉換器</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    /* Define CSS Variables for Colors */
+        /* ...existing code... */
     :root {
         --background-color: #f6f8fa;
         --container-background: #fff;
@@ -15,7 +15,7 @@
         --input-border-color: #ccc;
         --primary-button-bg: #3f51b5;
         --primary-button-hover-bg: #283593;
-        --primary-button-bg-rgb: 63, 81, 181; /* RGB for rgba() usage */
+        --primary-button-bg-rgb: 63, 81, 181;
         --secondary-button-bg: #ff9800;
         --secondary-button-hover-bg: #fb8c00;
         --success-button-bg: #43a047;
@@ -28,21 +28,21 @@
         --language-link-hover-color: #283593;
         --shadow-color: rgba(0,0,0,0.10);
         --video-shadow-color: rgba(60,40,120,0.06);
-        --error-color: #d32f2f; /* Red for errors */
+        --error-color: #d32f2f;
         --error-bg-color: rgba(211, 47, 47, 0.1);
+        --focus-outline: 2px solid #3f51b5;
     }
-
-    /* Dark Theme Variables */
+    
     body.dark-theme {
-        --background-color: #1a1a1a;
-        --container-background: #2d2d2d;
-        --text-color: #eee;
-        --secondary-text-color: #bbb;
+        --background-color: #181c22;
+        --container-background: #23272f;
+        --text-color: #f5f5f5;
+        --secondary-text-color: #b0b0b0;
         --border-color: #444;
         --input-border-color: #555;
         --primary-button-bg: #5c6bc0;
         --primary-button-hover-bg: #7986cb;
-        --primary-button-bg-rgb: 92, 107, 192; /* RGB for rgba() usage */
+        --primary-button-bg-rgb: 92, 107, 192;
         --secondary-button-bg: #ffa726;
         --secondary-button-hover-bg: #ffb74d;
         --success-button-bg: #66bb6a;
@@ -51,272 +51,337 @@
         --progress-bar-bg: #444;
         --progress-bar-color-start: #7986cb;
         --progress-bar-color-end: #ffb74d;
-        --language-link-color: #aed581; /* Lighter green for visibility */
+        --language-link-color: #aed581;
         --language-link-hover-color: #c5e1a5;
         --shadow-color: rgba(0,0,0,0.30);
         --video-shadow-color: rgba(0,0,0,0.2);
-        --error-color: #ef9a9a; /* Lighter red for dark theme */
+        --error-color: #ef9a9a;
         --error-bg-color: rgba(239, 154, 154, 0.1);
+        --focus-outline: 2px solid #aed581;
     }
-
+    
     body {
-      font-family: "Segoe UI", "微軟正黑體", Arial, sans-serif;
-      background: var(--background-color);
-      margin: 0;
-      padding: 0;
-      color: var(--text-color);
-      transition: background 0.3s ease, color 0.3s ease; /* Smooth transition for theme change */
+        font-family: "Segoe UI", "微軟正黑體", Arial, sans-serif;
+        background: var(--background-color);
+        margin: 0;
+        padding: 0;
+        color: var(--text-color);
+        transition: background 0.3s, color 0.3s;
+        min-height: 100vh;
     }
+    
     .container {
-      max-width: 960px; /* Increased max-width */
-      margin: 40px auto;
-      background: var(--container-background);
-      box-shadow: 0 4px 18px var(--shadow-color);
-      border-radius: 12px;
-      padding: 32px; /* Adjusted padding */
-      position: relative; /* For language switch positioning and drag overlay */
-      border: 2px dashed transparent; /* Add border for drag feedback */
-      transition: border-color 0.3s ease-in-out, background 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
+        max-width: 960px;
+        margin: 48px auto;
+        background: var(--container-background);
+        box-shadow: 0 8px 32px var(--shadow-color);
+        border-radius: 18px;
+        padding: 40px 36px 32px 36px;
+        position: relative;
+        border: 2px dashed transparent;
+        transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
     }
+    
     .container.dragover {
-        border-color: var(--primary-button-bg); /* Highlight border when dragging over */
+        border-color: var(--primary-button-bg);
+        box-shadow: 0 0 0 4px rgba(var(--primary-button-bg-rgb), 0.08), 0 8px 32px var(--shadow-color);
     }
-
-    /* Add for drag-and-drop overlay */
+    
     .drop-overlay {
         position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(var(--primary-button-bg-rgb), 0.1); /* Use RGB for lighter overlay */
-        border-radius: 12px;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(var(--primary-button-bg-rgb), 0.13);
+        border-radius: 18px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         text-align: center;
-        font-size: 1.8em; /* Larger font size */
-        font-weight: bold;
-        color: var(--primary-button-hover-bg); /* Use a darker version of primary color */
-        pointer-events: none; /* Allow clicks to pass through */
-        opacity: 0; /* Hidden by default */
-        transition: opacity 0.3s ease-in-out;
-        z-index: 10; /* Ensure it's above other content */
+        font-size: 2em;
+        font-weight: 600;
+        color: var(--primary-button-hover-bg);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+        z-index: 10;
+        letter-spacing: 1px;
+        backdrop-filter: blur(2px);
     }
-
-    /* Update dragover state for the overlay */
+    
     .container.dragover .drop-overlay {
-        opacity: 1; /* Show when dragover */
+        opacity: 1;
     }
-
+    
     .drop-overlay .icon {
-        font-size: 3em; /* Larger icon */
-        margin-bottom: 15px;
+        font-size: 3.5em;
+        margin-bottom: 18px;
+        filter: drop-shadow(0 2px 8px #fff3);
     }
-
-
+    
     h1 {
-      text-align: center;
-      font-size: 2em;
-      margin-bottom: 0.3em;
-      letter-spacing: 2px;
-      color: var(--text-color);
+        text-align: center;
+        font-size: 2.2em;
+        margin-bottom: 0.25em;
+        letter-spacing: 2px;
+        color: var(--text-color);
+        font-weight: 700;
     }
+    
     .desc {
-      text-align: center;
-      color: var(--secondary-text-color);
-      font-size: 1em;
-      margin-bottom: 24px;
+        text-align: center;
+        color: var(--secondary-text-color);
+        font-size: 1.08em;
+        margin-bottom: 28px;
+        line-height: 1.6;
     }
-
-    /* Error Message Styling */
+    
     #errorMessage {
         color: var(--error-color);
-        background-color: var(--error-bg-color);
-        border: 1px solid var(--error-color);
-        padding: 10px;
-        border-radius: 6px;
+        background: var(--error-bg-color);
+        border: 1.5px solid var(--error-color);
+        padding: 12px 18px;
+        border-radius: 8px;
         text-align: center;
-        margin: 15px auto;
-        max-width: 90%;
+        margin: 18px auto 0 auto;
+        max-width: 95%;
         min-height: 1.2em;
         font-weight: 500;
-        display: none; /* Hidden by default */
+        display: none;
         opacity: 0;
-        transition: opacity 0.3s ease-in-out;
+        transition: opacity 0.3s;
+        font-size: 1.05em;
     }
+    
     #errorMessage.show {
         display: block;
         opacity: 1;
     }
-
-
-    .settings-row { /* New row for language and theme switch */
+    
+    .settings-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
-        padding: 0 10px; /* Add some padding */
+        margin-bottom: 28px;
+        padding: 0 10px;
+        gap: 18px;
     }
+    
     .language-switch {
-      font-size: 0.9em;
-    }
-    .language-switch a {
-      color: var(--language-link-color);
-      text-decoration: none;
-      margin: 0 5px;
-      cursor: pointer;
-      transition: color 0.2s;
-    }
-    .language-switch a:hover {
-      color: var(--language-link-hover-color);
-    }
-    .language-switch a.active {
-      font-weight: bold;
-      text-decoration: underline;
-    }
-     .theme-switch {
         display: flex;
         align-items: center;
-        font-size: 0.9em;
+        font-size: 1em;
         color: var(--secondary-text-color);
-     }
-     .theme-switch label { /* Style for "Dark Mode" text */
-         margin-bottom: 0;
-         margin-right: 8px;
-         cursor: pointer;
-     }
-     /* Basic Toggle Switch CSS */
-     .theme-switch input[type="checkbox"] {
-         position: relative;
-         width: 34px;
-         height: 20px;
-         -webkit-appearance: none;
-         appearance: none;
-         background: var(--border-color);
-         outline: none;
-         border-radius: 20px;
-         cursor: pointer;
-         transition: background 0.3s;
-     }
-      .theme-switch input[type="checkbox"]:checked {
-         background: var(--primary-button-bg);
-      }
-     .theme-switch input[type="checkbox"]::before {
-         content: '';
-         position: absolute;
-         width: 16px;
-         height: 16px;
-         border-radius: 50%;
-         top: 2px;
-         left: 2px;
-         background: var(--container-background); /* Use container background for the knob */
-         transition: 0.3s;
-     }
-     .theme-switch input[type="checkbox"]:checked::before {
-         transform: translateX(14px);
-     }
-     .theme-switch .icon { /* Icon for theme switch */
-         font-size: 1.2em;
-         margin-left: 5px;
-         vertical-align: middle;
-     }
+        background: rgba(var(--primary-button-bg-rgb), 0.04);
+        border-radius: 8px;
+        padding: 6px 16px;
+        gap: 8px;
+        text-decoration: none;
+        box-shadow: 0 1px 4px var(--shadow-color);
+    }
+    .language-switch a.active,
+    .language-switch a:hover,
+    .language-switch a:focus { 
+        color: var(--primary-button-bg);
+        text-decoration: none;
+        font-weight: 600;
+    }
+    body.dark-theme .language-switch a{
+        color: var(--language-link-color);
+        text-decoration: none;
+    }
+    body .language-switch a{
 
-
+        text-decoration: none;
+    }
+    .theme-switch {
+        display: flex;
+        align-items: center;
+        font-size: 1em;
+        color: var(--secondary-text-color);
+        background: rgba(var(--primary-button-bg-rgb), 0.04);
+        border-radius: 8px;
+        padding: 6px 16px;
+        gap: 8px;
+        box-shadow: 0 1px 4px var(--shadow-color);
+    }
+    
+    .theme-switch label {
+        margin-bottom: 0;
+        margin-right: 8px;
+        cursor: pointer;
+        font-weight: 500;
+    }
+    
+    .theme-switch input[type="checkbox"] {
+        position: relative;
+        width: 38px;
+        height: 22px;
+        -webkit-appearance: none;
+        appearance: none;
+        background: var(--border-color);
+        outline: none;
+        border-radius: 22px;
+        cursor: pointer;
+        transition: background 0.3s;
+        margin-right: 6px;
+        border: 1.5px solid var(--input-border-color);
+    }
+    
+    .theme-switch input[type="checkbox"]:checked {
+        background: var(--primary-button-bg);
+        border-color: var(--primary-button-bg);
+    }
+    
+    .theme-switch input[type="checkbox"]::before {
+        content: '';
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        top: 2px;
+        left: 2px;
+        background: var(--container-background);
+        transition: 0.3s;
+        box-shadow: 0 1px 4px var(--shadow-color);
+    }
+    
+    .theme-switch input[type="checkbox"]:checked::before {
+        transform: translateX(16px);
+    }
+    
+    .theme-switch .icon {
+        font-size: 1.3em;
+        margin-left: 2px;
+        vertical-align: middle;
+        transition: filter 0.2s;
+        filter: drop-shadow(0 1px 2px #fff2);
+    }
+    
     .main-flex {
-      display: flex;
-      gap: 40px; /* Increased gap */
-      justify-content: center;
-      align-items: flex-start;
-      margin-top: 14px;
-      min-height: 350px;
+        display: flex;
+        gap: 48px;
+        justify-content: center;
+        align-items: flex-start;
+        margin-top: 18px;
+        min-height: 350px;
     }
+    
     .left, .right {
-      flex: 1;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
+    
     .form-group {
-      margin-bottom: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
+        margin-bottom: 26px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
     }
+    
     label {
-      margin-bottom: 8px; /* Keep this for the descriptive label if you add it back */
-      color: var(--secondary-text-color);
-      font-size: 1.05em;
+        margin-bottom: 8px;
+        color: var(--secondary-text-color);
+        font-size: 1.07em;
+        font-weight: 500;
     }
+    
     input[type="file"] {
-      display: none; /* Hide the default file input */
+        display: none;
     }
+    
     .custom-file-upload {
-      display: inline-block;
-      padding: 10px 24px;
-      cursor: pointer;
-      background: var(--primary-button-bg);
-      color: #fff;
-      border-radius: 6px;
-      font-size: 1em;
-      transition: background 0.2s;
-      margin-bottom: 0; /* Adjust margin if needed */
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 28px;
+        cursor: pointer;
+        background: var(--primary-button-bg);
+        color: #fff;
+        border-radius: 8px;
+        font-size: 1.07em;
+        transition: background 0.2s, box-shadow 0.2s;
+        margin-bottom: 0;
+        font-weight: 600;
+        box-shadow: 0 2px 8px var(--shadow-color);
+        border: none;
+        outline: none;
     }
-    .custom-file-upload:hover {
-      background: var(--primary-button-hover-bg);
+    
+    .custom-file-upload:hover, .custom-file-upload:focus {
+        background: var(--primary-button-hover-bg);
+        box-shadow: 0 4px 16px var(--shadow-color);
     }
-     /* Optional: Add back a label for the text "選擇影片" if desired */
+    
+    .custom-file-upload:focus {
+        outline: var(--focus-outline);
+    }
+    
     .file-input-label {
         margin-bottom: 8px;
         color: var(--secondary-text-color);
-        font-size: 1.05em;
+        font-size: 1.07em;
     }
+    
     #fileNameDisplay {
-        margin-top: 10px;
-        font-size: 0.9em;
+        margin-top: 12px;
+        font-size: 0.97em;
         color: var(--secondary-text-color);
         text-align: center;
-        word-break: break-all; /* Ensure long filenames wrap */
-        padding: 0 10px; /* Small padding */
+        word-break: break-all;
+        padding: 0 10px;
     }
-
+    
     #previewVideo {
-      display: none;
-      width: 100%;
-      max-width: 400px; /* Increased max-width for video */
-      max-height: 300px; /* Adjusted max-height */
-      margin: 20px 0 0 0;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px var(--video-shadow-color);
-      outline: none;
-      background: var(--video-background);
-    }
-    .trim-controls {
-        margin: 20px 0;
-        padding: 15px;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
+        display: none;
         width: 100%;
-        max-width: 400px; /* Align with video width */
-        box-sizing: border-box;
-        display: none; /* Initially hidden */
-        background: var(--container-background); /* Use container background */
+        max-width: 420px;
+        max-height: 220px;
+        margin: 16px 0 0 0;
+        border-radius: 10px;
+        box-shadow: 0 2px 12px var(--video-shadow-color);
+        outline: none;
+        background: var(--video-background);
+        border: 2px solid var(--border-color);
+        transition: box-shadow 0.2s, border 0.2s;
     }
+    
+    #previewVideo:focus {
+        border: 2px solid var(--primary-button-bg);
+        box-shadow: 0 0 0 3px rgba(var(--primary-button-bg-rgb), 0.13);
+    }
+    
+    .trim-controls {
+        margin: 16px 0 0 0;
+        padding: 12px;
+        border: 1.5px solid var(--border-color);
+        border-radius: 10px;
+        width: 100%;
+        max-width: 380px;
+        box-sizing: border-box;
+        display: none;
+        background: var(--container-background);
+        box-shadow: 0 1px 8px var(--shadow-color);
+    }
+    
     .trim-controls h3 {
         margin-top: 0;
-        font-size: 1.1em;
+        font-size: 1.15em;
         color: var(--text-color);
         text-align: center;
-        margin-bottom: 15px;
+        margin-bottom: 18px;
+        font-weight: 600;
     }
+    
     .trim-controls div {
         display: flex;
         align-items: center;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
     }
+    
     .trim-controls label {
         flex: 1;
         margin-bottom: 0;
@@ -325,215 +390,269 @@
         font-size: 1em;
         color: var(--secondary-text-color);
     }
-    .trim-controls input[type="number"], .trim-controls select { /* Added select to style */
+    
+    .trim-controls input[type="number"], .trim-controls select {
         flex: 2;
-        padding: 8px;
-        border: 1px solid var(--input-border-color);
-        border-radius: 4px;
+        padding: 9px 10px;
+        border: 1.5px solid var(--input-border-color);
+        border-radius: 6px;
         font-size: 1em;
-        box-sizing: border-box;
-        background: var(--container-background); /* Use container background */
+        background: var(--container-background);
         color: var(--text-color);
+        transition: border 0.2s;
     }
-    .trim-controls .checkbox-group { /* Style for the new checkbox group */
+    
+    .trim-controls input[type="number"]:focus, .trim-controls select:focus {
+        border: 1.5px solid var(--primary-button-bg);
+        outline: none;
+    }
+    
+    .trim-controls .checkbox-group {
         display: flex;
         align-items: center;
-        justify-content: center; /* Center the checkbox */
-        margin-top: 15px;
+        justify-content: center;
+        margin-top: 18px;
         margin-bottom: 0;
+        gap: 8px;
     }
+    
     .trim-controls .checkbox-group label {
-        flex: none; /* Don't let label take up space */
-        margin-right: 8px;
+        flex: none;
+        margin-right: 0;
         text-align: left;
         color: var(--secondary-text-color);
+        font-size: 1em;
     }
-     .trim-controls span {
-         font-size: 0.9em;
-         color: var(--secondary-text-color);
-         display: block;
-         text-align: center;
-         margin-top: 8px;
-     }
-
-
+    
+    .trim-controls span {
+        font-size: 0.97em;
+        color: var(--secondary-text-color);
+        display: block;
+        text-align: center;
+        margin-top: 10px;
+    }
+    
     .btn {
-      display: block;
-      width: 100%;
-      padding: 12px 0;
-      margin-top: 20px;
-      font-size: 1.15em;
-      background: var(--secondary-button-bg);
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s;
-      font-weight: 600;
-      letter-spacing: 1px;
-      max-width: 300px; /* Increased max-width for button */
-      margin-left: auto;
-      margin-right: auto;
+        display: block;
+        width: 100%;
+        padding: 14px 0;
+        margin-top: 16px;
+        font-size: 1.18em;
+        background: var(--secondary-button-bg);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.2s, box-shadow 0.2s;
+        font-weight: 700;
+        letter-spacing: 1px;
+        max-width: 260px;
+        margin-left: auto;
+        margin-right: auto;
+        box-shadow: 0 2px 8px var(--shadow-color);
     }
+    
     .btn:disabled {
-      background: rgba(var(--secondary-button-bg), 0.7); /* Use rgba for disabled state */
-      cursor: not-allowed;
-      opacity: 0.7; /* Keep opacity as a fallback */
+        background: rgba(255, 152, 0, 0.5);
+        cursor: not-allowed;
+        opacity: 0.7;
     }
-    .btn:hover:enabled {
-      background: var(--secondary-button-hover-bg);
+    
+    .btn:hover:enabled, .btn:focus:enabled {
+        background: var(--secondary-button-hover-bg);
+        box-shadow: 0 4px 16px var(--shadow-color);
     }
-    /* Icon styling for buttons/links */
+    
+    .btn:focus {
+        outline: var(--focus-outline);
+    }
+    
     .btn .icon, .custom-file-upload .icon, .download-link .icon {
-        margin-right: 8px; /* Space between icon and text */
-        vertical-align: middle; /* Align icons with text */
+        margin-right: 8px;
+        vertical-align: middle;
     }
-
-
-    .progress-area { /* New class for progress container */
+    
+    .progress-area {
         display: flex;
         flex-direction: column;
         align-items: center;
         width: 100%;
-        max-width: 300px; /* Align with button width */
-        margin-top: 20px;
-        display: none; /* Initially hidden */
+        max-width: 320px;
+        margin-top: 12px;
+        display: none;
+        gap: 8px;
     }
-     .progress-bar-bg {
-      width: 100%;
-      background: var(--progress-bar-bg);
-      border-radius: 6px;
-      height: 20px;
-      margin: 0 0 6px 0; /* Adjusted margin */
-      overflow: hidden;
+    
+    .progress-bar-bg {
+        width: 100%;
+        background: var(--progress-bar-bg);
+        border-radius: 8px;
+        height: 22px;
+        margin: 0 0 8px 0;
+        overflow: hidden;
+        box-shadow: 0 1px 4px var(--shadow-color);
     }
+    
     .progress-bar {
-      height: 100%;
-      background: linear-gradient(90deg, var(--progress-bar-color-start), var(--progress-bar-color-end));
-      width: 0%;
-      transition: width 0.2s;
+        height: 100%;
+        background: linear-gradient(90deg, var(--progress-bar-color-start), var(--progress-bar-color-end));
+        width: 0%;
+        transition: width 0.2s;
     }
-    .progress-text { /* New class for progress text */
-        font-size: 0.9em;
+    
+    .progress-text {
+        font-size: 1em;
         color: var(--secondary-text-color);
         text-align: center;
-        min-height: 1.2em; /* Reserve space to prevent layout shifts */
+        min-height: 1.2em;
     }
+    
     .gif-output {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 8px;
-      gap: 10px;
-      width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 6px;
+        gap: 8px;
+        width: 100%;
     }
+    
     .gif-output img {
-      border-radius: 7px;
-      border: 1px solid var(--border-color);
-      max-width: 100%;
-      max-height: 300px; /* Align with video height */
-      box-shadow: 0 2px 10px var(--shadow-color);
-      margin-bottom: 5px;
+        border-radius: 10px;
+        border: 1.5px solid var(--border-color);
+        max-width: 100%;
+        max-height: 180px;
+        box-shadow: 0 2px 12px var(--shadow-color);
+        margin-bottom: 2px;
+        background: #fff;
     }
+    
     .download-link {
-      margin-top: 2px;
-      text-decoration: none;
-      color: #fff;
-      background: var(--success-button-bg);
-      padding: 8px 26px;
-      border-radius: 6px;
-      font-weight: 600;
-      transition: background 0.2s;
-      font-size: 1em;
-      display: inline-block;
-      letter-spacing: 1px;
+        margin-top: 2px;
+        text-decoration: none;
+        color: #fff;
+        background: var(--success-button-bg);
+        padding: 10px 32px;
+        border-radius: 8px;
+        font-weight: 700;
+        transition: background 0.2s, box-shadow 0.2s;
+        font-size: 1.07em;
+        display: inline-block;
+        letter-spacing: 1px;
+        box-shadow: 0 2px 8px var(--shadow-color);
     }
-    .download-link:hover { background: var(--success-button-hover-bg); }
-
-
-    /* Responsive Adjustments */
-    @media (max-width: 960px) {
-        .container {
-            max-width: 98vw;
-            padding: 24px 4vw; /* Adjusted padding */
-            margin: 20px auto; /* Adjusted margin */
-        }
-         h1 { font-size: 1.8em; }
-         .desc { font-size: 0.95em; }
-         .settings-row { flex-direction: column; align-items: flex-start; gap: 15px; margin-bottom: 20px; }
-         .language-switch { margin-left: 0; }
+    
+    .download-link:hover, .download-link:focus {
+        background: var(--success-button-hover-bg);
+        box-shadow: 0 4px 16px var(--shadow-color);
+        outline: var(--focus-outline);
     }
-
-    @media (max-width: 768px) { /* Breakpoint for stacking columns */
-      .main-flex { flex-direction: column; gap: 30px; }
-      .left, .right { width: 100%; max-width: 100%; }
-      #previewVideo, .gif-output img, .trim-controls { max-width: 96vw; } /* Adjust for mobile */
-      .btn, .progress-area { max-width: 96vw; } /* Adjust for mobile */
-      .container { padding: 18px 4vw 24px 4vw;}
-      h1 { font-size: 1.5em;}
-      .settings-row { align-items: center; } /* Center settings in smaller screens */
-      .language-switch { margin-left: auto; margin-right: auto; }
-    }
-
-     @media (max-width: 480px) {
-         h1 { font-size: 1.3em;}
-         .desc { font-size: 0.9em; }
-         .custom-file-upload { padding: 8px 18px; font-size: 0.9em; }
-         .btn { padding: 10px 0; font-size: 1em; }
-         .trim-controls { padding: 10px; }
-         .trim-controls label, .trim-controls input, .trim-controls select { font-size: 0.9em; } /* Added select */
-         .progress-text { font-size: 0.8em; }
-         .download-link { padding: 6px 20px; font-size: 0.9em; }
-     }
-         /* Add inside the existing <style> tag */
+    
     .url-input-container {
-        margin-top: 15px;
+        margin-top: 18px;
         width: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
+        background: rgba(var(--primary-button-bg-rgb), 0.03);
+        border-radius: 8px;
+        padding: 14px 0 10px 0;
+        box-shadow: 0 1px 4px var(--shadow-color);
     }
     
     .separator {
         color: var(--secondary-text-color);
-        font-size: 0.9em;
+        font-size: 1em;
+        font-weight: 500;
     }
     
     .url-input {
         width: 100%;
-        max-width: 300px;
-        padding: 8px 12px;
-        border: 1px solid var(--input-border-color);
+        max-width: 320px;
+        padding: 10px 14px;
+        border: 1.5px solid var(--input-border-color);
         border-radius: 6px;
-        font-size: 0.9em;
+        font-size: 1em;
         background: var(--container-background);
         color: var(--text-color);
+        transition: border 0.2s;
+    }
+    
+    .url-input:focus {
+        border: 1.5px solid var(--primary-button-bg);
+        outline: none;
     }
     
     .url-button {
-        padding: 8px 16px;
+        padding: 10px 20px;
         background: var(--primary-button-bg);
         color: #fff;
         border: none;
         border-radius: 6px;
         cursor: pointer;
-        font-size: 0.9em;
-        transition: background 0.2s;
+        font-size: 1em;
+        transition: background 0.2s, box-shadow 0.2s;
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
+        font-weight: 600;
+        box-shadow: 0 1px 4px var(--shadow-color);
     }
     
-    .url-button:hover {
+    .url-button:hover, .url-button:focus {
         background: var(--primary-button-hover-bg);
+        box-shadow: 0 2px 8px var(--shadow-color);
+        outline: var(--focus-outline);
     }
     
     .url-button:disabled {
         background: var(--border-color);
         cursor: not-allowed;
+        color: #aaa;
+        box-shadow: none;
     }
-
+    
+    @media (max-width: 960px) {
+        .container {
+            max-width: 98vw;
+            padding: 28px 4vw;
+            margin: 24px auto;
+        }
+        h1 { font-size: 1.7em; }
+        .desc { font-size: 1em; }
+        .settings-row { flex-direction: column; align-items: stretch; gap: 14px; margin-bottom: 22px; }
+        .language-switch, .theme-switch { justify-content: center; }
+    }
+    
+    @media (max-width: 768px) {
+        .main-flex { flex-direction: column; gap: 32px; }
+        .left, .right { width: 100%; max-width: 100%; }
+        #previewVideo, .gif-output img, .trim-controls {
+            max-width: 96vw;
+            max-height: 160px;
+        }
+        .btn, .progress-area {
+            max-width: 96vw;
+        }
+        .container { padding: 16px 2vw 22px 2vw;}
+        h1 { font-size: 1.3em;}
+        .settings-row { align-items: center; }
+        .language-switch, .theme-switch { margin: 0 auto; }
+    }
+    
+    @media (max-width: 480px) {
+        h1 { font-size: 1.1em;}
+        .desc { font-size: 0.93em; }
+        .custom-file-upload { padding: 8px 14px; font-size: 0.93em; }
+        .btn { padding: 10px 0; font-size: 0.97em; }
+        .trim-controls { padding: 8px; }
+        .trim-controls label, .trim-controls input, .trim-controls select { font-size: 0.93em; }
+        .progress-text { font-size: 0.85em; }
+        .download-link { padding: 7px 16px; font-size: 0.93em; }
+        .url-input { font-size: 0.93em; }
+        .url-button { font-size: 0.93em; }
+    }
+    /* ...existing code... */
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
 </head>
