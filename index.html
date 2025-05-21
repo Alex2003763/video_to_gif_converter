@@ -575,16 +575,16 @@
             選擇檔案
           </label>
           <input type="file" accept="video/*" id="videoFile">
-                    <!-- Add this inside the .form-group div, after the fileNameDisplay span -->
-          <div class="url-input-container">
-            <span class="separator" data-i18n="orText">或</span>
-            <input type="text" id="videoUrl" placeholder="輸入影片網址" class="url-input">
-            <button id="loadUrlButton" class="url-button">
-              <span class="icon">🔗</span>
-              <span data-i18n="loadUrlButton">載入網址</span>
-            </button>
-          </div>
           <span id="fileNameDisplay"></span> <!-- Display selected file name here -->
+        </div>
+        <!-- Add URL input below file input -->
+        <div class="url-input-container" id="urlInputContainer">
+          <span class="separator" data-i18n="orText">或</span>
+          <input type="text" class="url-input" id="videoUrlInput" placeholder="https://...">
+          <button class="url-button" id="loadUrlButton">
+            <span class="icon">🌐</span>
+            <span data-i18n="loadUrlButton">載入網址</span>
+          </button>
         </div>
         <video id="previewVideo" controls></video>
 
@@ -664,6 +664,8 @@
     const fileNameDisplay = document.getElementById('fileNameDisplay'); // New: File name display
     const errorMessage = document.getElementById('errorMessage'); // New: Error message element
     const themeIcon = document.getElementById('themeIcon'); // New: Theme icon
+    const videoUrlInput = document.getElementById('videoUrlInput');
+    const loadUrlButton = document.getElementById('loadUrlButton');
 
     let selectedFile = null;
 
@@ -703,7 +705,8 @@
         qualityMedium: '中 (建議)',
         qualityLow: '低 (檔案較小)',
         dropVideoMessage: '將影片拖曳至此', // New translation
-        newConversionButton: '開始新的轉換' // New translation
+        newConversionButton: '開始新的轉換', // New translation
+        corsError: '無法下載影片，因為來源網站未允許跨域存取（CORS）。請下載影片到本機後再上傳，或使用允許跨域的影片網址。'
       },
       'en': {
         orText: 'OR',
@@ -739,7 +742,8 @@
         qualityMedium: 'Medium (recommended)',
         qualityLow: 'Low (smaller file)',
         dropVideoMessage: 'Drop video here', // New translation
-        newConversionButton: 'Start New Conversion' // New translation
+        newConversionButton: 'Start New Conversion', // New translation
+        corsError: 'Cannot download video because the source site does not allow cross-origin access (CORS). Please download the video to your computer and upload it, or use a CORS-enabled video URL.'
       }
     };
 
@@ -1041,7 +1045,11 @@
 
     // --- Existing GIF Conversion Functionality ---
     convertToGifButton.addEventListener('click', function() {
-      if (!selectedFile) return;
+      // Allow conversion if a video is loaded (either file or URL)
+      if (!previewVideo.src || previewVideo.readyState < 2) {
+        showErrorMessage('videoError');
+        return;
+      }
 
       const startTime = parseFloat(startTimeInput.value);
       const endTime = parseFloat(endTimeInput.value);
@@ -1189,82 +1197,77 @@
         });
       }
     });
-        // Add after the videoFile event listener
-    const videoUrl = document.getElementById('videoUrl');
-    const loadUrlButton = document.getElementById('loadUrlButton');
     
+    // --- Load video from URL functionality ---
     loadUrlButton.addEventListener('click', async function() {
-    const url = videoUrl.value.trim();
-    
-    if (!url) {
+      const url = videoUrlInput.value.trim();
+      const currentLang = localStorage.getItem('preferredLang') || 'zh-TW';
+      if (!url || !/^https?:\/\/.+/i.test(url)) {
         showErrorMessage('invalidUrl');
         return;
-    }
-
-    // Disable input and button while loading
-    videoUrl.disabled = true;
-    loadUrlButton.disabled = true;
-    
-    const currentLang = localStorage.getItem('preferredLang') || 'zh-TW';
-    progressArea.style.display = 'flex';
-    progressText.textContent = translations[currentLang]['loadingUrl'];
-
-    // Try to fetch the video as a Blob and use a local object URL
-    try {
-        const response = await fetch(url, { mode: 'cors' });
-        if (!response.ok) throw new Error('Network response was not ok');
-        const blob = await response.blob();
-        // Clean up previous object URLs if any
-        if (previewVideo.src && previewVideo.src.startsWith('blob:')) {
-            URL.revokeObjectURL(previewVideo.src);
+      }
+      resetUI();
+      progressArea.style.display = 'flex';
+      progressBar.style.width = '0%';
+      progressText.textContent = translations[currentLang]['loadingUrl'];
+      fileNameDisplay.textContent = url;
+      selectedFile = null;
+      try {
+        // Use cors-anywhere proxy
+        const corsProxy = 'https://cors-anywhere.herokuapp.com/';
+        const proxyUrl = corsProxy + url;
+        const response = await fetch(proxyUrl);
+        if (!response.ok) throw new Error('fetch failed');
+        // Check CORS
+        if (response.type === "opaque") {
+          throw new Error('cors');
         }
+        const blob = await response.blob();
+        selectedFile = new File([blob], url.split('/').pop() || 'video-from-url', { type: blob.type });
         const objectUrl = URL.createObjectURL(blob);
         previewVideo.src = objectUrl;
-
-        previewVideo.onerror = function() {
-            showErrorMessage('urlLoadError');
-            videoUrl.disabled = false;
-            loadUrlButton.disabled = false;
-            progressArea.style.display = 'none';
-            resetUI();
-        };
-
-        previewVideo.onloadedmetadata = function() {
-            // Create a virtual file object for consistency with file upload handling
-            selectedFile = {
-                name: 'video_from_url.mp4',
-                type: 'video/mp4'
-            };
-            
-            previewVideo.style.display = 'block';
-            convertToGifButton.style.display = 'block';
-            trimControls.style.display = 'block';
-            
-            videoUrl.disabled = false;
-            loadUrlButton.disabled = false;
-            progressArea.style.display = 'none';
-            
-            // Update file name display
-            fileNameDisplay.textContent = 'Video from URL';
-            
-            // Reset time inputs and set duration
-            startTimeInput.value = 0;
-            endTimeInput.value = previewVideo.duration.toFixed(2);
-            videoDurationSpan.textContent = `${translations[currentLang]['totalDuration']} ${formatTime(previewVideo.duration)}`;
-        };
-    } catch (err) {
-        showErrorMessage('urlLoadError');
-        videoUrl.disabled = false;
-        loadUrlButton.disabled = false;
+        previewVideo.style.display = 'block';
+        function onLoaded() {
+          progressArea.style.display = 'none';
+          progressText.textContent = '';
+          convertToGifButton.style.display = 'block';
+          trimControls.style.display = 'block';
+          videoUrlInput.value = '';
+          previewVideo.removeEventListener('loadedmetadata', onLoaded);
+          previewVideo.removeEventListener('error', onError);
+        }
+        function onError() {
+          showErrorMessage('urlLoadError');
+          progressArea.style.display = 'none';
+          progressText.textContent = '';
+          previewVideo.style.display = 'none';
+          fileNameDisplay.textContent = '';
+          previewVideo.removeEventListener('loadedmetadata', onLoaded);
+          previewVideo.removeEventListener('error', onError);
+          URL.revokeObjectURL(objectUrl);
+        }
+        previewVideo.addEventListener('loadedmetadata', onLoaded);
+        previewVideo.addEventListener('error', onError);
+      } catch (e) {
+        if (e.message === 'cors') {
+          showErrorMessage('corsError');
+        } else {
+          showErrorMessage('urlLoadError');
+        }
         progressArea.style.display = 'none';
-        resetUI();
-    }
-});
-    
-    // Clear error when URL input changes
-    videoUrl.addEventListener('input', function() {
-        hideErrorMessage();
+        progressText.textContent = '';
+        previewVideo.style.display = 'none';
+        fileNameDisplay.textContent = '';
+      }
     });
+
+    // Allow pressing Enter in the URL input to trigger loading
+    videoUrlInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        loadUrlButton.click();
+      }
+    });
+    
   </script>
 </body>
 </html>
