@@ -675,7 +675,6 @@
         invalidUrl: '無效的影片網址',
         loadingUrl: '正在載入網址...',
         urlLoadError: '無法載入影片網址，請確認網址是否正確',
-        corsError: '無法載入影片，來源網站不允許跨域存取 (CORS)。請下載影片後再上傳。',
         pageTitle: '影片轉 GIF 轉換器',
         title: '影片轉 GIF 工具',
         description: '上傳一段影片，快速生成高品質 GIF 動畫',
@@ -712,7 +711,6 @@
         invalidUrl: 'Invalid video URL',
         loadingUrl: 'Loading URL...',
         urlLoadError: 'Could not load the video URL, please check if it is correct',
-        corsError: 'Could not load the video. The source site does not allow cross-origin access (CORS). Please download the video and upload it manually.',
         pageTitle: 'Video to GIF Converter',
         title: 'Video to GIF Tool',
         description: 'Upload a video to quickly generate high-quality GIF animation',
@@ -1255,15 +1253,7 @@
             videoDurationSpan.textContent = `${translations[currentLang]['totalDuration']} ${formatTime(previewVideo.duration)}`;
         };
     } catch (err) {
-        // Detect CORS error (network error or opaque response)
-        if (
-            err instanceof TypeError &&
-            (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))
-        ) {
-            showErrorMessage('corsError');
-        } else {
-            showErrorMessage('urlLoadError');
-        }
+        showErrorMessage('urlLoadError');
         videoUrl.disabled = false;
         loadUrlButton.disabled = false;
         progressArea.style.display = 'none';
