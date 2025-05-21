@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title data-i18n="pageTitle">影片轉 GIF 轉換器</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* Define CSS Variables for Colors */
+    :root {
+        --background-color: #f6f8fa;
+        --container-background: #fff;
+        --text-color: #222;
+        --secondary-text-color: #888;
+        --border-color: #e0e0e0;
+        --input-border-color: #ccc;
+        --primary-button-bg: #3f51b5;
+        --primary-button-hover-bg: #283593;
+        --primary-button-bg-rgb: 63, 81, 181; /* RGB for rgba() usage */
+        --secondary-button-bg: #ff9800;
+        --secondary-button-hover-bg: #fb8c00;
+        --success-button-bg: #43a047;
+        --success-button-hover-bg: #388e3c;
+        --video-background: #222;
+        --progress-bar-bg: #ececec;
+        --progress-bar-color-start: #3f51b5;
+        --progress-bar-color-end: #ff9800;
+        --language-link-color: #3f51b5;
+        --language-link-hover-color: #283593;
+        --shadow-color: rgba(0,0,0,0.10);
+        --video-shadow-color: rgba(60,40,120,0.06);
+        --error-color: #d32f2f; /* Red for errors */
+        --error-bg-color: rgba(211, 47, 47, 0.1);
+    }
+
+    /* Dark Theme Variables */
+    body.dark-theme {
+        --background-color: #1a1a1a;
+        --container-background: #2d2d2d;
+        --text-color: #eee;
+        --secondary-text-color: #bbb;
+        --border-color: #444;
+        --input-border-color: #555;
+        --primary-button-bg: #5c6bc0;
+        --primary-button-hover-bg: #7986cb;
+        --primary-button-bg-rgb: 92, 107, 192; /* RGB for rgba() usage */
+        --secondary-button-bg: #ffa726;
+        --secondary-button-hover-bg: #ffb74d;
+        --success-button-bg: #66bb6a;
+        --success-button-hover-bg: #81c784;
+        --video-background: #000;
+        --progress-bar-bg: #444;
+        --progress-bar-color-start: #7986cb;
+        --progress-bar-color-end: #ffb74d;
+        --language-link-color: #aed581; /* Lighter green for visibility */
+        --language-link-hover-color: #c5e1a5;
+        --shadow-color: rgba(0,0,0,0.30);
+        --video-shadow-color: rgba(0,0,0,0.2);
+        --error-color: #ef9a9a; /* Lighter red for dark theme */
+        --error-bg-color: rgba(239, 154, 154, 0.1);
+    }
+
+    body {
+      font-family: "Segoe UI", "微軟正黑體", Arial, sans-serif;
+      background: var(--background-color);
+      margin: 0;
+      padding: 0;
+      color: var(--text-color);
+      transition: background 0.3s ease, color 0.3s ease; /* Smooth transition for theme change */
+    }
+    .container {
+      max-width: 960px; /* Increased max-width */
+      margin: 40px auto;
+      background: var(--container-background);
+      box-shadow: 0 4px 18px var(--shadow-color);
+      border-radius: 12px;
+      padding: 32px; /* Adjusted padding */
+      position: relative; /* For language switch positioning and drag overlay */
+      border: 2px dashed transparent; /* Add border for drag feedback */
+      transition: border-color 0.3s ease-in-out, background 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
+    }
+    .container.dragover {
+        border-color: var(--primary-button-bg); /* Highlight border when dragging over */
+    }
+
+    /* Add for drag-and-drop overlay */
+    .drop-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(var(--primary-button-bg-rgb), 0.1); /* Use RGB for lighter overlay */
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        font-size: 1.8em; /* Larger font size */
+        font-weight: bold;
+        color: var(--primary-button-hover-bg); /* Use a darker version of primary color */
+        pointer-events: none; /* Allow clicks to pass through */
+        opacity: 0; /* Hidden by default */
+        transition: opacity 0.3s ease-in-out;
+        z-index: 10; /* Ensure it's above other content */
+    }
+
+    /* Update dragover state for the overlay */
+    .container.dragover .drop-overlay {
+        opacity: 1; /* Show when dragover */
+    }
+
+    .drop-overlay .icon {
+        font-size: 3em; /* Larger icon */
+        margin-bottom: 15px;
+    }
+
+
+    h1 {
+      text-align: center;
+      font-size: 2em;
+      margin-bottom: 0.3em;
+      letter-spacing: 2px;
+      color: var(--text-color);
+    }
+    .desc {
+      text-align: center;
+      color: var(--secondary-text-color);
+      font-size: 1em;
+      margin-bottom: 24px;
+    }
+
+    /* Error Message Styling */
+    #errorMessage {
+        color: var(--error-color);
+        background-color: var(--error-bg-color);
+        border: 1px solid var(--error-color);
+        padding: 10px;
+        border-radius: 6px;
+        text-align: center;
+        margin: 15px auto;
+        max-width: 90%;
+        min-height: 1.2em;
+        font-weight: 500;
+        display: none; /* Hidden by default */
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+    }
+    #errorMessage.show {
+        display: block;
+        opacity: 1;
+    }
+
+
+    .settings-row { /* New row for language and theme switch */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 0 10px; /* Add some padding */
+    }
+    .language-switch {
+      font-size: 0.9em;
+    }
+    .language-switch a {
+      color: var(--language-link-color);
+      text-decoration: none;
+      margin: 0 5px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .language-switch a:hover {
+      color: var(--language-link-hover-color);
+    }
+    .language-switch a.active {
+      font-weight: bold;
+      text-decoration: underline;
+    }
+     .theme-switch {
+        display: flex;
+        align-items: center;
+        font-size: 0.9em;
+        color: var(--secondary-text-color);
+     }
+     .theme-switch label { /* Style for "Dark Mode" text */
+         margin-bottom: 0;
+         margin-right: 8px;
+         cursor: pointer;
+     }
+     /* Basic Toggle Switch CSS */
+     .theme-switch input[type="checkbox"] {
+         position: relative;
+         width: 34px;
+         height: 20px;
+         -webkit-appearance: none;
+         appearance: none;
+         background: var(--border-color);
+         outline: none;
+         border-radius: 20px;
+         cursor: pointer;
+         transition: background 0.3s;
+     }
+      .theme-switch input[type="checkbox"]:checked {
+         background: var(--primary-button-bg);
+      }
+     .theme-switch input[type="checkbox"]::before {
+         content: '';
+         position: absolute;
+         width: 16px;
+         height: 16px;
+         border-radius: 50%;
+         top: 2px;
+         left: 2px;
+         background: var(--container-background); /* Use container background for the knob */
+         transition: 0.3s;
+     }
+     .theme-switch input[type="checkbox"]:checked::before {
+         transform: translateX(14px);
+     }
+     .theme-switch .icon { /* Icon for theme switch */
+         font-size: 1.2em;
+         margin-left: 5px;
+         vertical-align: middle;
+     }
+
+
+    .main-flex {
+      display: flex;
+      gap: 40px; /* Increased gap */
+      justify-content: center;
+      align-items: flex-start;
+      margin-top: 14px;
+      min-height: 350px;
+    }
+    .left, .right {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .form-group {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+    label {
+      margin-bottom: 8px; /* Keep this for the descriptive label if you add it back */
+      color: var(--secondary-text-color);
+      font-size: 1.05em;
+    }
+    input[type="file"] {
+      display: none; /* Hide the default file input */
+    }
+    .custom-file-upload {
+      display: inline-block;
+      padding: 10px 24px;
+      cursor: pointer;
+      background: var(--primary-button-bg);
+      color: #fff;
+      border-radius: 6px;
+      font-size: 1em;
+      transition: background 0.2s;
+      margin-bottom: 0; /* Adjust margin if needed */
+    }
+    .custom-file-upload:hover {
+      background: var(--primary-button-hover-bg);
+    }
+     /* Optional: Add back a label for the text "選擇影片" if desired */
+    .file-input-label {
+        margin-bottom: 8px;
+        color: var(--secondary-text-color);
+        font-size: 1.05em;
+    }
+    #fileNameDisplay {
+        margin-top: 10px;
+        font-size: 0.9em;
+        color: var(--secondary-text-color);
+        text-align: center;
+        word-break: break-all; /* Ensure long filenames wrap */
+        padding: 0 10px; /* Small padding */
+    }
+
+    #previewVideo {
+      display: none;
+      width: 100%;
+      max-width: 400px; /* Increased max-width for video */
+      max-height: 300px; /* Adjusted max-height */
+      margin: 20px 0 0 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px var(--video-shadow-color);
+      outline: none;
+      background: var(--video-background);
+    }
+    .trim-controls {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        width: 100%;
+        max-width: 400px; /* Align with video width */
+        box-sizing: border-box;
+        display: none; /* Initially hidden */
+        background: var(--container-background); /* Use container background */
+    }
+    .trim-controls h3 {
+        margin-top: 0;
+        font-size: 1.1em;
+        color: var(--text-color);
+        text-align: center;
+        margin-bottom: 15px;
+    }
+    .trim-controls div {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .trim-controls label {
+        flex: 1;
+        margin-bottom: 0;
+        margin-right: 10px;
+        text-align: right;
+        font-size: 1em;
+        color: var(--secondary-text-color);
+    }
+    .trim-controls input[type="number"], .trim-controls select { /* Added select to style */
+        flex: 2;
+        padding: 8px;
+        border: 1px solid var(--input-border-color);
+        border-radius: 4px;
+        font-size: 1em;
+        box-sizing: border-box;
+        background: var(--container-background); /* Use container background */
+        color: var(--text-color);
+    }
+    .trim-controls .checkbox-group { /* Style for the new checkbox group */
+        display: flex;
+        align-items: center;
+        justify-content: center; /* Center the checkbox */
+        margin-top: 15px;
+        margin-bottom: 0;
+    }
+    .trim-controls .checkbox-group label {
+        flex: none; /* Don't let label take up space */
+        margin-right: 8px;
+        text-align: left;
+        color: var(--secondary-text-color);
+    }
+     .trim-controls span {
+         font-size: 0.9em;
+         color: var(--secondary-text-color);
+         display: block;
+         text-align: center;
+         margin-top: 8px;
+     }
+
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 12px 0;
+      margin-top: 20px;
+      font-size: 1.15em;
+      background: var(--secondary-button-bg);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-weight: 600;
+      letter-spacing: 1px;
+      max-width: 300px; /* Increased max-width for button */
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .btn:disabled {
+      background: rgba(var(--secondary-button-bg), 0.7); /* Use rgba for disabled state */
+      cursor: not-allowed;
+      opacity: 0.7; /* Keep opacity as a fallback */
+    }
+    .btn:hover:enabled {
+      background: var(--secondary-button-hover-bg);
+    }
+    /* Icon styling for buttons/links */
+    .btn .icon, .custom-file-upload .icon, .download-link .icon {
+        margin-right: 8px; /* Space between icon and text */
+        vertical-align: middle; /* Align icons with text */
+    }
+
+
+    .progress-area { /* New class for progress container */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        max-width: 300px; /* Align with button width */
+        margin-top: 20px;
+        display: none; /* Initially hidden */
+    }
+     .progress-bar-bg {
+      width: 100%;
+      background: var(--progress-bar-bg);
+      border-radius: 6px;
+      height: 20px;
+      margin: 0 0 6px 0; /* Adjusted margin */
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--progress-bar-color-start), var(--progress-bar-color-end));
+      width: 0%;
+      transition: width 0.2s;
+    }
+    .progress-text { /* New class for progress text */
+        font-size: 0.9em;
+        color: var(--secondary-text-color);
+        text-align: center;
+        min-height: 1.2em; /* Reserve space to prevent layout shifts */
+    }
+    .gif-output {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 8px;
+      gap: 10px;
+      width: 100%;
+    }
+    .gif-output img {
+      border-radius: 7px;
+      border: 1px solid var(--border-color);
+      max-width: 100%;
+      max-height: 300px; /* Align with video height */
+      box-shadow: 0 2px 10px var(--shadow-color);
+      margin-bottom: 5px;
+    }
+    .download-link {
+      margin-top: 2px;
+      text-decoration: none;
+      color: #fff;
+      background: var(--success-button-bg);
+      padding: 8px 26px;
+      border-radius: 6px;
+      font-weight: 600;
+      transition: background 0.2s;
+      font-size: 1em;
+      display: inline-block;
+      letter-spacing: 1px;
+    }
+    .download-link:hover { background: var(--success-button-hover-bg); }
+
+
+    /* Responsive Adjustments */
+    @media (max-width: 960px) {
+        .container {
+            max-width: 98vw;
+            padding: 24px 4vw; /* Adjusted padding */
+            margin: 20px auto; /* Adjusted margin */
+        }
+         h1 { font-size: 1.8em; }
+         .desc { font-size: 0.95em; }
+         .settings-row { flex-direction: column; align-items: flex-start; gap: 15px; margin-bottom: 20px; }
+         .language-switch { margin-left: 0; }
+    }
+
+    @media (max-width: 768px) { /* Breakpoint for stacking columns */
+      .main-flex { flex-direction: column; gap: 30px; }
+      .left, .right { width: 100%; max-width: 100%; }
+      #previewVideo, .gif-output img, .trim-controls { max-width: 96vw; } /* Adjust for mobile */
+      .btn, .progress-area { max-width: 96vw; } /* Adjust for mobile */
+      .container { padding: 18px 4vw 24px 4vw;}
+      h1 { font-size: 1.5em;}
+      .settings-row { align-items: center; } /* Center settings in smaller screens */
+      .language-switch { margin-left: auto; margin-right: auto; }
+    }
+
+     @media (max-width: 480px) {
+         h1 { font-size: 1.3em;}
+         .desc { font-size: 0.9em; }
+         .custom-file-upload { padding: 8px 18px; font-size: 0.9em; }
+         .btn { padding: 10px 0; font-size: 1em; }
+         .trim-controls { padding: 10px; }
+         .trim-controls label, .trim-controls input, .trim-controls select { font-size: 0.9em; } /* Added select */
+         .progress-text { font-size: 0.8em; }
+         .download-link { padding: 6px 20px; font-size: 0.9em; }
+     }
+         /* Add inside the existing <style> tag */
+    .url-input-container {
+        margin-top: 15px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .separator {
+        color: var(--secondary-text-color);
+        font-size: 0.9em;
+    }
+    
+    .url-input {
+        width: 100%;
+        max-width: 300px;
+        padding: 8px 12px;
+        border: 1px solid var(--input-border-color);
+        border-radius: 6px;
+        font-size: 0.9em;
+        background: var(--container-background);
+        color: var(--text-color);
+    }
+    
+    .url-button {
+        padding: 8px 16px;
+        background: var(--primary-button-bg);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9em;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .url-button:hover {
+        background: var(--primary-button-hover-bg);
+    }
+    
+    .url-button:disabled {
+        background: var(--border-color);
+        cursor: not-allowed;
+    }
+
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+</head>
+<body>
+  <div class="container" id="dropArea">
+    <div class="settings-row">
+        <div class="language-switch">
+          <a href="#" data-lang="zh-TW" class="active">繁體中文</a> |
+          <a href="#" data-lang="en">English</a>
+        </div>
+        <div class="theme-switch">
+            <label for="darkModeToggle" data-i18n="darkModeLabel">深色模式</label>
+            <input type="checkbox" id="darkModeToggle">
+            <span class="icon" id="themeIcon">☀️</span> <!-- Sun for light, Moon for dark -->
+        </div>
+    </div>
+
+    <h1 data-i18n="title">影片轉 GIF 工具</h1>
+    <div class="desc" data-i18n="description">上傳一段影片，快速生成高品質 GIF 動畫</div>
+
+    <div id="errorMessage"></div> <!-- Error message display area -->
+
+    <!-- Drag & Drop Overlay -->
+    <div class="drop-overlay">
+        <span class="icon">⬇️</span> <!-- You can replace this with an SVG or FontAwesome icon -->
+        <span data-i18n="dropVideoMessage">將影片拖曳至此</span>
+    </div>
+
+    <div class="main-flex">
+      <!-- 左側：影片選擇 + 預覽 -->
+      <div class="left">
+        <div class="form-group">
+          <!-- Optional: Keep this label if you want the text "選擇影片" above the button -->
+          <label class="file-input-label" data-i18n="selectVideoLabel">選擇影片</label>
+
+          <!-- Modified Label and Input for file selection -->
+          <label class="custom-file-upload" for="videoFile" data-i18n="selectFileButton">
+            <span class="icon">📁</span>
+            選擇檔案
+          </label>
+          <input type="file" accept="video/*" id="videoFile">
+                    <!-- Add this inside the .form-group div, after the fileNameDisplay span -->
+          <div class="url-input-container">
+            <span class="separator" data-i18n="orText">或</span>
+            <input type="text" id="videoUrl" placeholder="輸入影片網址" class="url-input">
+            <button id="loadUrlButton" class="url-button">
+              <span class="icon">🔗</span>
+              <span data-i18n="loadUrlButton">載入網址</span>
+            </button>
+          </div>
+          <span id="fileNameDisplay"></span> <!-- Display selected file name here -->
+        </div>
+        <video id="previewVideo" controls></video>
+
+        <!-- Trim/Crop Controls -->
+        <div class="trim-controls" id="trimControls">
+            <h3 data-i18n="selectSegmentTitle">選取影片片段</h3>
+            <div>
+                <label for="startTime" data-i18n="startTimeLabel">開始時間 (秒):</label>
+                <input type="number" id="startTime" value="0" step="0.01" min="0">
+            </div>
+            <div>
+                <label for="endTime" data-i18n="endTimeLabel">結束時間 (秒):</label>
+                <input type="number" id="endTime" value="0" step="0.01" min="0">
+            </div>
+             <!-- New FPS Input Field -->
+            <div>
+                <label for="fpsInput" data-i18n="fpsLabel">影格率 (FPS):</label>
+                <input type="number" id="fpsInput" value="15" step="1" min="1">
+            </div>
+            <span id="videoDuration"></span> <!-- To display total video duration -->
+
+            <!-- Quality Selection -->
+            <div>
+                <label for="qualitySelect" data-i18n="qualityLabel">品質:</label>
+                <select id="qualitySelect">
+                    <option value="10" data-i18n="qualityHigh">高 (檔案較大)</option>
+                    <option value="20" data-i18n="qualityMedium" selected>中 (建議)</option>
+                    <option value="30" data-i18n="qualityLow">低 (檔案較小)</option>
+                </select>
+            </div>
+
+            <!-- Loop Option -->
+            <div class="checkbox-group">
+                <input type="checkbox" id="loopGif" checked> <!-- Checked by default for loop-->
+                <label for="loopGif" data-i18n="loopGifLabel">無限迴圈</label>
+            </div>
+        </div>
+
+      </div>
+      <!-- 右側：GIF 產生按鈕、進度、輸出 -->
+      <div class="right">
+        <button id="convertToGif" class="btn" style="display:none;" data-i18n="convertToGifButton">
+            <span class="icon">✨</span>
+            開始轉成 GIF
+        </button>
+
+        <!-- Progress Area -->
+        <div class="progress-area" id="progressArea">
+            <div class="progress-bar-bg">
+              <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <span class="progress-text" id="progressText"></span> <!-- Progress text -->
+        </div>
+
+        <div class="gif-output" id="gifContainer"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const container = document.getElementById('dropArea'); // Get the container element
+    const videoFile = document.getElementById('videoFile');
+    const previewVideo = document.getElementById('previewVideo');
+    const convertToGifButton = document.getElementById('convertToGif');
+    const gifContainer = document.getElementById('gifContainer');
+    const progressArea = document.getElementById('progressArea');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const langLinks = document.querySelectorAll('.language-switch a');
+    const trimControls = document.getElementById('trimControls');
+    const startTimeInput = document.getElementById('startTime');
+    const endTimeInput = document.getElementById('endTime');
+    const videoDurationSpan = document.getElementById('videoDuration');
+    const loopGifCheckbox = document.getElementById('loopGif');
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const fpsInput = document.getElementById('fpsInput');
+    const qualitySelect = document.getElementById('qualitySelect');
+    const fileNameDisplay = document.getElementById('fileNameDisplay'); // New: File name display
+    const errorMessage = document.getElementById('errorMessage'); // New: Error message element
+    const themeIcon = document.getElementById('themeIcon'); // New: Theme icon
+
+    let selectedFile = null;
+
+    // Language translations
+    const translations = {
+      'zh-TW': {
+        orText: '或',
+        loadUrlButton: '載入網址',
+        invalidUrl: '無效的影片網址',
+        loadingUrl: '正在載入網址...',
+        urlLoadError: '無法載入影片網址，請確認網址是否正確',
+        pageTitle: '影片轉 GIF 轉換器',
+        title: '影片轉 GIF 工具',
+        description: '上傳一段影片，快速生成高品質 GIF 動畫',
+        selectVideoLabel: '選擇影片',
+        selectFileButton: '選擇檔案',
+        convertToGifButton: '開始轉成 GIF',
+        downloadGif: '下載 GIF',
+        notVideoFile: '請拖曳一個影片檔案!',
+        selectSegmentTitle: '選取影片片段',
+        startTimeLabel: '開始時間 (秒):',
+        endTimeLabel: '結束時間 (秒):',
+        totalDuration: '總時長:',
+        invalidTimeRange: '結束時間必須大於開始時間，且不得超過影片總時長。',
+        videoError: '無法載入影片檔案，請確認檔案是否損壞或格式不支援。',
+        startingConversion: '開始轉換...',
+        capturingFrame: '正在擷取影格 {current} / {total}',
+        renderingGif: '正在渲染 GIF...',
+        conversionComplete: '轉換完成!',
+        processingFile: '正在處理檔案...',
+        loopGifLabel: '無限迴圈',
+        darkModeLabel: '深色模式',
+        fpsLabel: '影格率 (FPS):',
+        invalidFps: '影格率必須是至少為 1 的有效數字。',
+        qualityLabel: '品質:',
+        qualityHigh: '高 (檔案較大)',
+        qualityMedium: '中 (建議)',
+        qualityLow: '低 (檔案較小)',
+        dropVideoMessage: '將影片拖曳至此', // New translation
+        newConversionButton: '開始新的轉換' // New translation
+      },
+      'en': {
+        orText: 'OR',
+        loadUrlButton: 'Load URL',
+        invalidUrl: 'Invalid video URL',
+        loadingUrl: 'Loading URL...',
+        urlLoadError: 'Could not load the video URL, please check if it is correct',
+        pageTitle: 'Video to GIF Converter',
+        title: 'Video to GIF Tool',
+        description: 'Upload a video to quickly generate high-quality GIF animation',
+        selectVideoLabel: 'Select Video',
+        selectFileButton: 'Choose File',
+        convertToGifButton: 'Start Converting to GIF',
+        downloadGif: 'Download GIF',
+        notVideoFile: 'Please drag and drop a video file!',
+        selectSegmentTitle: 'Select Video Segment',
+        startTimeLabel: 'Start Time (seconds):',
+        endTimeLabel: 'End Time (seconds):',
+        totalDuration: 'Total Duration:',
+        invalidTimeRange: 'End time must be greater than start time and within the video duration.',
+        videoError: 'Could not load the video file. Please check if the file is corrupted or the format is not supported.',
+        startingConversion: 'Starting conversion...',
+        capturingFrame: 'Capturing frame {current} / {total}',
+        renderingGif: 'Rendering GIF...',
+        conversionComplete: 'Conversion complete!',
+        processingFile: 'Processing file...',
+        loopGifLabel: 'Loop infinitely',
+        darkModeLabel: 'Dark Mode',
+        fpsLabel: 'Frame Rate (FPS):',
+        invalidFps: 'Frame rate must be a valid number of at least 1.',
+        qualityLabel: 'Quality:',
+        qualityHigh: 'High (larger file)',
+        qualityMedium: 'Medium (recommended)',
+        qualityLow: 'Low (smaller file)',
+        dropVideoMessage: 'Drop video here', // New translation
+        newConversionButton: 'Start New Conversion' // New translation
+      }
+    };
+
+    // Function to update text based on language
+    function updateText(lang) {
+      document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+          if (element.tagName === 'TITLE') {
+             document.title = translations[lang][key];
+          } else if (element.tagName === 'OPTION') {
+             element.textContent = translations[lang][key];
+          } else {
+             // For elements that might contain icons, use innerHTML for safety
+             if (element.classList.contains('custom-file-upload') || element.classList.contains('btn') || element.classList.contains('download-link')) {
+                 const iconSpan = element.querySelector('.icon');
+                 element.innerHTML = `${iconSpan ? iconSpan.outerHTML : ''}${translations[lang][key]}`;
+             } else {
+                 element.textContent = translations[lang][key];
+             }
+          }
+        }
+      });
+
+       // Update download link text if it exists (special handling because it's dynamically created)
+       const downloadLink = gifContainer.querySelector('.download-link');
+       if(downloadLink) {
+           const iconSpan = downloadLink.querySelector('.icon');
+           downloadLink.innerHTML = `${iconSpan ? iconSpan.outerHTML : ''}${translations[lang]['downloadGif']}`;
+       }
+        // Update new conversion button text if it exists
+       const newConversionButton = gifContainer.querySelector('.btn:last-child'); // Assuming it's the last button
+       if(newConversionButton && newConversionButton.textContent !== translations[lang]['newConversionButton']) { // Prevent re-setting if already correct
+           newConversionButton.textContent = translations[lang]['newConversionButton'];
+       }
+
+        // Update total duration text if displayed
+        if (previewVideo.duration && !isNaN(previewVideo.duration)) {
+             const duration = previewVideo.duration;
+             videoDurationSpan.textContent = `${translations[lang]['totalDuration']} ${formatTime(duration)}`;
+        }
+         // Update trim controls title explicitly
+        const trimTitle = trimControls.querySelector('h3');
+        if (trimTitle) { trimTitle.textContent = translations[lang]['selectSegmentTitle']; }
+         // Update dark mode label text explicitly
+         const darkModeLabel = document.querySelector('.theme-switch label[for="darkModeToggle"]');
+         if (darkModeLabel && translations[lang]['darkModeLabel']) { darkModeLabel.textContent = translations[lang]['darkModeLabel']; }
+         // Update FPS label text explicitly
+         const fpsLabel = trimControls.querySelector('label[for="fpsInput"]');
+         if (fpsLabel && translations[lang]['fpsLabel']) { fpsLabel.textContent = translations[lang]['fpsLabel']; }
+         // Update Quality label text explicitly
+         const qualityLabel = trimControls.querySelector('label[for="qualitySelect"]');
+         if (qualityLabel && translations[lang]['qualityLabel']) { qualityLabel.textContent = translations[lang]['qualityLabel']; }
+
+         // Update error message if it's currently displayed
+         if (errorMessage.classList.contains('show')) {
+             // Re-evaluate its text based on its data-error-key if available, or clear it
+             errorMessage.textContent = ''; // Clear for now, specific errors will re-set it.
+             errorMessage.classList.remove('show');
+         }
+    }
+
+     // Function to format time in MM:SS or HH:MM:SS
+    function formatTime(seconds) {
+        if (isNaN(seconds) || seconds < 0) return '00:00';
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+
+        const parts = [];
+        if (h > 0) {
+            parts.push(h.toString().padStart(2, '0'));
+        }
+        parts.push(m.toString().padStart(2, '0'));
+        parts.push(s.toString().padStart(2, '0'));
+        return parts.join(':');
+    }
+
+    // --- Error Message Display Functions ---
+    function showErrorMessage(messageKey) {
+        const currentLang = localStorage.getItem('preferredLang') || 'zh-TW';
+        errorMessage.textContent = translations[currentLang][messageKey];
+        errorMessage.classList.add('show');
+        // Set a timeout to hide the message after a few seconds
+        setTimeout(() => {
+            hideErrorMessage();
+        }, 5000); // Hide after 5 seconds
+    }
+
+    function hideErrorMessage() {
+        errorMessage.classList.remove('show');
+        // Clear text after transition for clean UI
+        setTimeout(() => errorMessage.textContent = '', 300);
+    }
+
+
+    // Handle language switch clicks
+    langLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const lang = this.getAttribute('data-lang');
+        localStorage.setItem('preferredLang', lang); // Save preference
+        updateText(lang);
+        langLinks.forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // Set initial language on load
+    const initialLang = localStorage.getItem('preferredLang') || 'zh-TW';
+    updateText(initialLang);
+    langLinks.forEach(link => {
+        if (link.getAttribute('data-lang') === initialLang) {
+            link.classList.add('active');
+        } else {
+            link.classList.remove('active');
+        }
+    });
+
+    // --- Dark Mode Functionality ---
+    function enableDarkMode() {
+        document.body.classList.add('dark-theme');
+        localStorage.setItem('theme', 'dark');
+        themeIcon.textContent = '🌙'; // Moon icon
+    }
+
+    function disableDarkMode() {
+        document.body.classList.remove('dark-theme');
+        localStorage.setItem('theme', 'light');
+        themeIcon.textContent = '☀️'; // Sun icon
+    }
+
+    // Load saved theme preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        enableDarkMode();
+        darkModeToggle.checked = true;
+    } else {
+        disableDarkMode();
+        darkModeToggle.checked = false; // Ensure toggle is off for light mode
+    }
+
+    // Listen for theme toggle changes
+    darkModeToggle.addEventListener('change', function() {
+        if (this.checked) {
+            enableDarkMode();
+        } else {
+            disableDarkMode();
+        }
+    });
+
+
+    // --- Drag and Drop Functionality ---
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        container.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    // Highlight drop area when dragging over
+    ['dragenter', 'dragover'].forEach(eventName => {
+        container.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        container.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight() {
+        container.classList.add('dragover');
+    }
+
+    function unhighlight() {
+        container.classList.remove('dragover');
+    }
+
+    // Handle dropped files
+    container.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+
+        if (files.length > 0) {
+            const file = files[0];
+            if (file.type.startsWith('video/')) {
+                 processFile(file);
+                 hideErrorMessage(); // Clear any previous error
+            } else {
+                 showErrorMessage('notVideoFile'); // Use translated error message
+            }
+        }
+    }
+
+    // Function to reset UI to initial state
+    function resetUI() {
+        previewVideo.style.display = 'none';
+        previewVideo.src = ''; // Clear video source
+        convertToGifButton.style.display = 'none'; // Hide convert button
+        gifContainer.innerHTML = ''; // Clear GIF and download button
+        trimControls.style.display = 'none'; // Hide trim controls
+        fileNameDisplay.textContent = ''; // Clear filename display
+        selectedFile = null; // Clear selected file
+        hideErrorMessage(); // Clear any existing error messages
+        progressArea.style.display = 'none'; // Ensure progress area is hidden
+        progressBar.style.width = '0%';
+        progressText.textContent = '';
+        startTimeInput.value = 0; // Reset trim controls
+        endTimeInput.value = 0;
+        videoDurationSpan.textContent = '';
+        fpsInput.value = 15; // Reset FPS to default
+        qualitySelect.value = 20; // Reset quality to medium
+        loopGifCheckbox.checked = true; // Reset loop to default
+    }
+
+
+    // Function to process the selected/dropped file
+    function processFile(file) {
+        selectedFile = file;
+        const reader = new FileReader();
+
+        const currentLang = localStorage.getItem('preferredLang') || 'zh-TW';
+        progressArea.style.display = 'flex'; // Show progress area
+        progressBar.style.width = '0%';
+        progressText.textContent = translations[currentLang]['processingFile'];
+        hideErrorMessage(); // Clear any previous error
+
+        reader.onload = function(e) {
+          previewVideo.src = e.target.result;
+          previewVideo.style.display = 'block';
+          convertToGifButton.style.display = 'block';
+          gifContainer.innerHTML = ''; // Clear previous GIF
+          trimControls.style.display = 'block'; // Show trim controls
+
+          // Reset time inputs and duration display
+          startTimeInput.value = 0;
+          endTimeInput.value = 0;
+          videoDurationSpan.textContent = ''; // Clear previous duration
+
+          fileNameDisplay.textContent = file.name; // Display the file name
+
+          // Hide processing text and progress bar until conversion starts
+          progressArea.style.display = 'none';
+          progressText.textContent = '';
+        };
+         reader.onerror = function() {
+             showErrorMessage('videoError'); // Use translated error message
+             // Hide progress on error
+             progressArea.style.display = 'none';
+             progressText.textContent = '';
+             resetUI(); // Reset UI on severe error
+         }
+        reader.readAsDataURL(file);
+    }
+
+    // --- Handle file selection via the hidden input ---
+    videoFile.addEventListener('change', function() {
+      const file = this.files[0];
+      if (file) {
+        processFile(file);
+      }
+    });
+
+    // --- Update time inputs and duration when video metadata is loaded ---
+    previewVideo.addEventListener('loadedmetadata', function() {
+        const duration = previewVideo.duration;
+        endTimeInput.value = duration.toFixed(2); // Set default end time to total duration
+        endTimeInput.max = duration.toFixed(2); // Set max for end time input
+        startTimeInput.max = duration.toFixed(2); // Set max for start time input
+
+        const currentLang = localStorage.getItem('preferredLang') || 'zh-TW';
+        videoDurationSpan.textContent = `${translations[currentLang]['totalDuration']} ${formatTime(duration)}`; // Display total duration
+
+        // Add event listeners to time inputs to update video preview on change
+        startTimeInput.addEventListener('input', updateVideoTime);
+        endTimeInput.addEventListener('input', updateVideoTime);
+    });
+
+    // Function to update video preview time based on input values
+    function updateVideoTime() {
+        const startTime = parseFloat(startTimeInput.value);
+        const endTime = parseFloat(endTimeInput.value);
+        const duration = previewVideo.duration;
+
+         // Basic validation - prevent seeking if invalid
+        if (isNaN(startTime) || startTime < 0 || startTime > duration) { return; }
+        if (isNaN(endTime) || endTime < 0 || endTime > duration) { return; }
+        if (startTime >= endTime && endTime > 0) { return; } // Don't alert here, just prevent seeking
+        
+        // Seek to the start time when start time input changes or on load
+        if (document.activeElement === startTimeInput || !document.activeElement) {
+             previewVideo.currentTime = startTime;
+        }
+    }
+
+
+    // --- Existing GIF Conversion Functionality ---
+    convertToGifButton.addEventListener('click', function() {
+      if (!selectedFile) return;
+
+      const startTime = parseFloat(startTimeInput.value);
+      const endTime = parseFloat(endTimeInput.value);
+      const duration = previewVideo.duration;
+      const loopGif = loopGifCheckbox.checked;
+      const framesPerSecond = parseInt(fpsInput.value, 10);
+      const gifQuality = parseInt(qualitySelect.value, 10);
+
+      // Validate time inputs before starting conversion
+      if (isNaN(startTime) || isNaN(endTime) || startTime < 0 || endTime < 0 || startTime >= endTime || endTime > duration) {
+          showErrorMessage('invalidTimeRange');
+          return;
+      }
+
+      // Validate FPS input
+      if (isNaN(framesPerSecond) || framesPerSecond < 1) {
+          showErrorMessage('invalidFps');
+          return;
+      }
+
+      hideErrorMessage(); // Clear any previous errors if validation passes
+
+      const currentLang = localStorage.getItem('preferredLang') || 'zh-TW';
+      convertToGifButton.disabled = true;
+      progressArea.style.display = 'flex';
+      progressBar.style.width = '0%';
+      progressText.textContent = translations[currentLang]['startingConversion'];
+      gifContainer.innerHTML = ''; // Clear previous GIF
+
+      function generateGif() {
+        const gif = new GIF({
+          width: previewVideo.videoWidth,
+          height: previewVideo.videoHeight,
+          workers: 4,
+          quality: gifQuality,
+          workerScript: './gif.worker.js',
+          repeat: loopGif ? 0 : -1
+        });
+
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d', { willReadFrequently: true });
+        canvas.width = previewVideo.videoWidth;
+        canvas.height = previewVideo.videoHeight;
+
+        const segmentDuration = endTime - startTime;
+        let frameCount = Math.max(2, Math.floor(segmentDuration * framesPerSecond));
+        const interval = segmentDuration / frameCount;
+
+        let captured = 0;
+
+        function captureFrame(idx) {
+          let timeToSeek = startTime + idx * interval;
+          if (idx === frameCount - 1) {
+               timeToSeek = endTime;
+          }
+          timeToSeek = Math.min(timeToSeek, endTime);
+
+          previewVideo.currentTime = timeToSeek;
+          previewVideo.pause();
+
+          const onSeeked = function() {
+            previewVideo.removeEventListener('seeked', onSeeked);
+            context.drawImage(previewVideo, 0, 0, canvas.width, canvas.height);
+            gif.addFrame(context, { copy: true, delay: (1000 / framesPerSecond) });
+
+            captured++;
+            const captureProgress = (captured / frameCount) * 80;
+            progressBar.style.width = captureProgress + "%";
+
+            progressText.textContent = translations[currentLang]['capturingFrame']
+                                        .replace('{current}', captured)
+                                        .replace('{total}', frameCount);
+
+            if (captured < frameCount) {
+              setTimeout(()=>captureFrame(captured), 50);
+            } else {
+               progressBar.style.width = "80%";
+               progressText.textContent = translations[currentLang]['renderingGif'];
+              gif.render();
+            }
+          };
+
+          previewVideo.addEventListener('seeked', onSeeked);
+           if (Math.abs(previewVideo.currentTime - timeToSeek) < 0.1) {
+               onSeeked();
+           }
+        }
+
+        gif.on('progress', function(p) {
+          progressBar.style.width = (80 + p*20) + "%"
+        });
+
+        gif.on('finished', function(blob) {
+          progressBar.style.width = "100%";
+          progressText.textContent = translations[currentLang]['conversionComplete'];
+
+          setTimeout(()=>{
+            progressArea.style.display = 'none';
+            progressBar.style.width = "0%";
+            progressText.textContent = '';
+            convertToGifButton.disabled = false;
+          }, 700);
+
+          const url = URL.createObjectURL(blob);
+          const img = document.createElement('img');
+          img.src = url;
+          img.alt = "Generated GIF"; // Alt text for accessibility
+
+          const download = document.createElement('a');
+          download.href = url;
+          download.download = "output.gif";
+          download.innerHTML = `<span class="icon">⬇️</span> ${translations[currentLang]['downloadGif']}`;
+          download.className = "download-link";
+
+          const newConversionBtn = document.createElement('button');
+          newConversionBtn.textContent = translations[currentLang]['newConversionButton'];
+          newConversionBtn.className = "btn"; // Reuse existing button style
+          newConversionBtn.style.marginTop = '15px'; // Space from download link
+          newConversionBtn.addEventListener('click', resetUI); // Attach reset function
+
+          gifContainer.innerHTML = ''; // Clear previous output
+          gifContainer.appendChild(img);
+          gifContainer.appendChild(download);
+          gifContainer.appendChild(newConversionBtn); // Add the new button
+        });
+
+        // Start capturing frames
+        captureFrame(0);
+      }
+
+      // Wait for video metadata to load
+      if (previewVideo.readyState >= 2) {
+        generateGif();
+      } else {
+        previewVideo.addEventListener('loadedmetadata', function onMetadataLoaded() {
+          previewVideo.removeEventListener('loadedmetadata', onMetadataLoaded);
+          generateGif();
+        });
+        previewVideo.addEventListener('error', function onVideoError() {
+            previewVideo.removeEventListener('error', onVideoError);
+            showErrorMessage('videoError');
+            convertToGifButton.disabled = false;
+            progressArea.style.display = 'none';
+            progressText.textContent = '';
+        });
+      }
+    });
+        // Add after the videoFile event listener
+    const videoUrl = document.getElementById('videoUrl');
+    const loadUrlButton = document.getElementById('loadUrlButton');
+    
+    loadUrlButton.addEventListener('click', async function() {
+    const url = videoUrl.value.trim();
+    
+    if (!url) {
+        showErrorMessage('invalidUrl');
+        return;
+    }
+
+    // Disable input and button while loading
+    videoUrl.disabled = true;
+    loadUrlButton.disabled = true;
+    
+    const currentLang = localStorage.getItem('preferredLang') || 'zh-TW';
+    progressArea.style.display = 'flex';
+    progressText.textContent = translations[currentLang]['loadingUrl'];
+
+    // Try to fetch the video as a Blob and use a local object URL
+    try {
+        const response = await fetch(url, { mode: 'cors' });
+        if (!response.ok) throw new Error('Network response was not ok');
+        const blob = await response.blob();
+        // Clean up previous object URLs if any
+        if (previewVideo.src && previewVideo.src.startsWith('blob:')) {
+            URL.revokeObjectURL(previewVideo.src);
+        }
+        const objectUrl = URL.createObjectURL(blob);
+        previewVideo.src = objectUrl;
+
+        previewVideo.onerror = function() {
+            showErrorMessage('urlLoadError');
+            videoUrl.disabled = false;
+            loadUrlButton.disabled = false;
+            progressArea.style.display = 'none';
+            resetUI();
+        };
+
+        previewVideo.onloadedmetadata = function() {
+            // Create a virtual file object for consistency with file uplo
+            selectedFile = {
+                name: 'video_from_url.mp4',
+                type: 'video/mp4'
+            };
+            
+            previewVideo.style.display = 'block';
+            convertToGifButton.style.display = 'block';
+            trimControls.style.display = 'block';
+            
+            videoUrl.disabled = false;
+            loadUrlButton.disabled = false;
+            progressArea.style.display = 'none';
+            
+            // Update file name display
+            fileNameDisplay.textContent = 'Video from URL';
+            
+            // Reset time inputs and set duration
+            startTimeInput.value = 0;
+            endTimeInput.value = previewVideo.duration.toFixed(2);
+            videoDurationSpan.textContent = `${translations[currentLang]['totalDuration']} ${formatTime(previewVideo.duration)}`;
+        };
+    } catch (err) {
+        showErrorMessage('urlLoadError');
+        videoUrl.disabled = false;
+        loadUrlButton.disabled = false;
+        progressArea.style.display = 'none';
+        resetUI();
+    }
+});
+    
+    // Clear error when URL input changes
+    videoUrl.addEventListener('input', function() {
+        hideErrorMessage();
+    });
+  </script>
+</body>
+</html>
