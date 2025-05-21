@@ -1,4 +1,4 @@
- const container = document.getElementById('dropArea'); // Get the container element
+    const container = document.getElementById('dropArea'); // Get the container element
     const videoFile = document.getElementById('videoFile');
     const previewVideo = document.getElementById('previewVideo');
     const convertToGifButton = document.getElementById('convertToGif');
