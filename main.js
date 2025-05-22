@@ -568,7 +568,7 @@
       selectedFile = null;
       try {
         // Use cors-anywhere proxy
-        const corsProxy = 'https://cors-anywhere-bza7.onrender.com/';
+        const corsProxy = 'https://odd-dream-5e6e.anthorytsang.workers.dev/';
         const proxyUrl = corsProxy + url;
         const response = await fetch(proxyUrl);
         if (!response.ok) throw new Error('fetch failed');
