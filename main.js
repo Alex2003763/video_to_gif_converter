@@ -437,7 +437,7 @@
         const gif = new GIF({
           width: previewVideo.videoWidth,
           height: previewVideo.videoHeight,
-          workers: 4,
+          workers: 6,
           quality: gifQuality,
           workerScript: './gif.worker.js',
           repeat: loopGif ? 0 : -1
@@ -478,7 +478,7 @@
                                         .replace('{total}', frameCount);
 
             if (captured < frameCount) {
-              setTimeout(()=>captureFrame(captured), 50);
+              setTimeout(()=>captureFrame(captured), 120);
             } else {
                progressBar.style.width = "80%";
                progressText.textContent = translations[currentLang]['renderingGif'];
